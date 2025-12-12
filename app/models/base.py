@@ -1,21 +1,10 @@
-import enum
-
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import UniqueConstraint
 
 from app.database.core import Base
 
-
-class TransactionType(str, enum.Enum):
-    INCOME = "income"
-    EXPENSE = "expense"
-
-
-class CategoryType(str, enum.Enum):
-    INCOME = "income"
-    EXPENSE = "expense"
-    TRANSFER = "transfer"
+from .enums import CategoryType, TransactionType
 
 
 class Account(Base):
