@@ -1,10 +1,10 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.base import Transaction
 
 
 class TransactionRepo:
-    def create_transaction(self, db: Session, data: Transaction):
+    async def create_transaction(self, db: AsyncSession, data: Transaction):
         db.add(data)
-        db.commit()
+        await db.commit()
         return data

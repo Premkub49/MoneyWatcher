@@ -1,21 +1,25 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.base import Account
 
 
 class AccountRepo:
-    def get_account(self, db: Session, id=None, account_number=None, provider=None):
-        query = db.query(Account)
+    async def get_account(
+        self, db: AsyncSession, id=None, account_number=None, provider=None
+    ):
+        stmt = select(Account)
         if id:
-            query = query.filter(Account.id == id)
+            stmt = stmt.where(Account.id == id)
         if account_number:
-            query = query.filter(Account.account_number == account_number)
+            stmt = stmt.where(Account.account_number == account_number)
         if provider:
-            query = query.filter(Account.provider == provider)
-        existing_account = query.all()
+            stmt = stmt.where(Account.provider == provider)
+        result = await db.execute(stmt)
+        existing_account = result.scalars().all()
         return existing_account
 
-    async def create_account(self, db: Session, data: Account):
+    async def create_account(self, db: AsyncSession, data: Account):
         db.add(data)
-        db.commit()
+        await db.commit()
         return data

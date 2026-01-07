@@ -11,7 +11,7 @@ router = APIRouter()
 async def krungthai_handler(payload: WebhookPayload, db=Depends(get_db_session)):
     service = TransactionService()
     try:
-        result = service.process_webhook(db, payload)
+        result = await service.process_webhook(db, payload)
         res_json = {"status": "success", "data": result}
         print(res_json)
         return res_json
