@@ -16,7 +16,7 @@ class AccountRepo:
         if provider:
             stmt = stmt.where(Account.provider == provider)
         result = await db.execute(stmt)
-        existing_account = result.scalars().all()
+        existing_account = result.scalar_one_or_none()
         return existing_account
 
     async def create_account(self, db: AsyncSession, data: Account):

@@ -22,10 +22,13 @@ class AccountService:
         is_account_existed = await self.get_account(
             db, account_number=account_number, provider=provider
         )
-        if not is_account_existed:
+        if is_account_existed is None:
             account = Account(
                 name=f"{provider} {account_number}",
                 account_number=account_number,
                 provider=provider,
             )
             await self.create_account(db, data=account)
+        return await self.get_account(
+            db, account_number=account_number, provider=provider
+        )
