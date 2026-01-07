@@ -5,4 +5,4 @@ class WebhookPayload(BaseModel):
     title: str
     notification: str
     category: str
-    timestamp: str
+    timestamp: int
