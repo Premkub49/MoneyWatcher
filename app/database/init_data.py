@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.database.core import AsyncSessionLocal
+from app.database.core import AsyncSessionLocal, Base, async_engine
 from app.models.base import Category
 from app.models.enums import CategoryType
 
@@ -15,7 +15,9 @@ DEFAULT_CATEGORIES = [
 
 async def init_master_data():
     print("Checking master data...")
-
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        
     async with AsyncSessionLocal() as session:
         for cat_data in DEFAULT_CATEGORIES:
             stmt = select(Category).where(Category.name == cat_data["name"])
