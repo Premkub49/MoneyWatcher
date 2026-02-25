@@ -19,7 +19,7 @@ class AccountRepo:
         existing_account = result.scalar_one_or_none()
         return existing_account
 
-    async def create_account(self, db: AsyncSession, data: Account):
+    async def create_or_update_account(self, db: AsyncSession, data: Account):
         db.add(data)
         await db.commit()
         return data

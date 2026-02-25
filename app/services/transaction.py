@@ -44,6 +44,11 @@ class TransactionService:
         amount_match = re.search(r"(-?[\d,]+\.\d{2})\s+บาท", text)
         amount = float(amount_match.group(1)) if amount_match else 0
 
+        if action_type == "income":
+            await self.account_service.update_balance_account(db, account_data.id, account_data.balance + amount)
+        elif action_type == "expense":
+            await self.account_service.update_balance_account(db, account_data.id, account_data.balance - amount)
+
         new_transaction = Transaction(
             account_id=account_data.id,
             category_id=category.id,

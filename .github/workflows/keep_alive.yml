@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Ping My Webhook Server
         run: |
-          curl -I https://moneywatcher.onrender.com
+          curl https://moneywatcher.onrender.com

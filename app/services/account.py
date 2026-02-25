@@ -13,8 +13,8 @@ class AccountService:
     ):
         return await self.repo.get_account(db, id, account_number, provider)
 
-    async def create_account(self, db: AsyncSession, data: Account):
-        return await self.repo.create_account(db, data)
+    async def create_or_update_account(self, db: AsyncSession, data: Account):
+        return await self.repo.create_or_update_account(db, data)
 
     async def create_account_if_not_existed(
         self, db: AsyncSession, account_number: str, provider: str
@@ -28,7 +28,13 @@ class AccountService:
                 account_number=account_number,
                 provider=provider,
             )
-            await self.create_account(db, data=account)
+            await self.create_or_update_account(db, data=account)
         return await self.get_account(
             db, account_number=account_number, provider=provider
         )
+    async def update_balance_account(self, db: AsyncSession, account_id: int, new_balance: float):
+        account = await self.get_account(db, id=account_id)
+        if account:
+            account.balance = new_balance
+            await self.create_or_update_account(db, data=account)
+        return account
