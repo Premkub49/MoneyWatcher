@@ -126,13 +126,3 @@ export DATABASE_URL=postgresql+asyncpg://user:pass@host:port/dbname
 alembic upgrade head
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
-
-## Deploy (Zeabur)
-
-Auto-deploys on push to `main` via [Zeabur](https://zeabur.com).
-
-1. Connect GitHub repo to Zeabur
-2. Set `DATABASE_URL` in Zeabur dashboard
-3. Zeabur reads `zbpack.json` and handles the rest
-
-No Docker required.
