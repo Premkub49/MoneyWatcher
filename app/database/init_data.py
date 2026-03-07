@@ -1,35 +1,30 @@
 from sqlalchemy import select
 
-from app.database.core import AsyncSessionLocal, Base, async_engine
-from app.models.base import Category
+from app.database.core import AsyncSessionLocal
+from app.models.base import Category, DEFAULT_CATEGORIES
 from app.models.enums import CategoryType
-
-DEFAULT_CATEGORIES = [
-    {"name": "Food", "type": CategoryType.EXPENSE},
-    {"name": "Travel", "type": CategoryType.EXPENSE},
-    {"name": "Shopping", "type": CategoryType.EXPENSE},
-    {"name": "Bill", "type": CategoryType.EXPENSE},
-    {"name": "Transfer", "type": CategoryType.TRANSFER},
-]
+from app.services import category_cache as cache
 
 
 async def init_master_data():
-    print("Checking master data...")
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        
+    """Load categories into cache. If DB is empty, seed defaults first."""
     async with AsyncSessionLocal() as session:
-        for cat_data in DEFAULT_CATEGORIES:
-            stmt = select(Category).where(Category.name == cat_data["name"])
-            result = await session.execute(stmt)
-            existing_cat = result.scalar_one_or_none()
+        result = await session.execute(select(Category).order_by(Category.id))
+        categories = list(result.scalars().all())
 
-            if not existing_cat:
-                new_cat = Category(name=cat_data["name"], type=cat_data["type"])
-                session.add(new_cat)
-                print(f"Created default category: {cat_data['name']}")
-            else:
-                pass
+        # seed if table is empty
+        if not categories:
+            print("No categories found, seeding defaults...")
+            for cat in DEFAULT_CATEGORIES:
+                session.add(Category(
+                    name=cat["name"],
+                    display_name=cat["display_name"],
+                    type=CategoryType(cat["type"].lower()),
+                ))
+            await session.commit()
 
-        await session.commit()
-        print("Master data initialization complete.")
+            result = await session.execute(select(Category).order_by(Category.id))
+            categories = list(result.scalars().all())
+
+        cache.load_cache(categories)
+    print("Category cache loaded.")

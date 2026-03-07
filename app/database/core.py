@@ -18,10 +18,12 @@ AsyncSessionLocal = async_sessionmaker(async_engine, expire_on_commit=False)
 
 
 async def get_db_session():
+    """Yield an async DB session for FastAPI dependency injection."""
     async with AsyncSessionLocal() as session:
         yield session
 
 
 def get_sync_engine(url: str):
+    """Create a sync engine from an asyncpg URL."""
     sync_url = url.replace("+asyncpg", "")
     return create_engine(sync_url, future=True)

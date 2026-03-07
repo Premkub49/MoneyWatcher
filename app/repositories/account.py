@@ -8,6 +8,7 @@ class AccountRepo:
     async def get_account(
         self, db: AsyncSession, id=None, account_number=None, provider=None
     ):
+        """Find an account by id, account_number, or provider."""
         stmt = select(Account)
         if id:
             stmt = stmt.where(Account.id == id)
@@ -20,6 +21,7 @@ class AccountRepo:
         return existing_account
 
     async def create_or_update_account(self, db: AsyncSession, data: Account):
+        """Insert or update an account in DB."""
         db.add(data)
         await db.commit()
         return data

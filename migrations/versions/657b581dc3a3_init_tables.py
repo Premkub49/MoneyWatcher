@@ -1,8 +1,8 @@
-"""init new data
+"""init tables
 
-Revision ID: e565867547de
+Revision ID: 657b581dc3a3
 Revises: 
-Create Date: 2026-01-07 14:17:20.277409
+Create Date: 2026-03-07 19:50:21.449205
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e565867547de'
+revision: str = '657b581dc3a3'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,10 +32,20 @@ def upgrade() -> None:
     sa.UniqueConstraint('account_number', 'provider', name='uix_account_provider')
     )
     op.create_index(op.f('ix_accounts_id'), 'accounts', ['id'], unique=False)
+    op.create_table('raw_data',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('source', sa.String(length=100), nullable=False),
+    sa.Column('raw_payload', sa.Text(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('is_processed', sa.Boolean(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    schema='bronze'
+    )
     op.create_table('categories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', 'TRANSFER', name='categorytype'), nullable=False),
+    sa.Column('display_name', sa.String(length=150), nullable=False),
+    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', 'OTHER', name='categorytype'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_categories_id'), 'categories', ['id'], unique=False)
@@ -43,10 +53,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', 'NONE', name='transactiontype'), nullable=False),
     sa.Column('amount', sa.Float(), nullable=False),
-    sa.Column('note', sa.String(), nullable=False),
     sa.Column('bank_timestamp', sa.String(length=50), nullable=True),
+    sa.Column('note', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ),
     sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
@@ -63,6 +72,7 @@ def downgrade() -> None:
     op.drop_table('transactions')
     op.drop_index(op.f('ix_categories_id'), table_name='categories')
     op.drop_table('categories')
+    op.drop_table('raw_data', schema='bronze')
     op.drop_index(op.f('ix_accounts_id'), table_name='accounts')
     op.drop_table('accounts')
     # ### end Alembic commands ###

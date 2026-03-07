@@ -6,33 +6,31 @@ from logging.config import fileConfig
 from alembic import context
 from dotenv import load_dotenv
 from sqlalchemy import pool
+import sqlalchemy as sa
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 load_dotenv()
 sys.path.append(os.getcwd())
 
-from app.models.base import Base
+from app.models.base import Base  # noqa: E402
 
 target_metadata = Base.metadata
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+
+# Schemas that we own — everything else (auth, storage, realtime …) is ignored.
+INCLUDE_SCHEMAS = {"public", "bronze"}
+
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+def include_object(object, name, type_, reflected, compare_to):
+    """Only include objects that belong to our schemas."""
+    if type_ == "table":
+        return object.schema in INCLUDE_SCHEMAS or object.schema is None
+    return True
 
 
 def run_migrations_offline() -> None:
@@ -60,7 +58,15 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    # ensure bronze schema exists before running migrations
+    connection.execute(sa.text("CREATE SCHEMA IF NOT EXISTS bronze"))
+
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -79,6 +85,7 @@ async def run_async_migrations() -> None:
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"statement_cache_size": 0},
     )
 
     async with connectable.connect() as connection:

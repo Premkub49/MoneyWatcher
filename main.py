@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from app.api.v1 import webhook
+from app.api.v1 import category, webhook
 from app.database.init_data import init_master_data
 
 load_dotenv()
@@ -28,8 +28,10 @@ app = FastAPI(
 )
 
 app.include_router(webhook.router, prefix="/api/v1/webhook", tags=["Webhook"])
+app.include_router(category.router, prefix="/api/v1/categories", tags=["Categories"])
 
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     return {"message": "MoneyWatcher API is running"}

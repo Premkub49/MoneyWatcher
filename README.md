@@ -1,124 +1,138 @@
-# MoneyWatcher
+# MoneyWatcher 💰
 
-![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
-![Python](https://img.shields.io/badge/Python-3.13-blue?style=flat-square)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green?style=flat-square)
+Personal automated expense tracker — captures Krungthai bank notifications via MacroDroid and records transactions through a webhook-based data pipeline.
 
-> ⚠️ **Note:** Project นี้กำลังอยู่ในช่วงพัฒนา (Under Development) โครงสร้าง Database และ API อาจมีการเปลี่ยนแปลงได้ตลอดเวลา
+**Built for personal use.** Not a general-purpose tool.
 
-**MoneyWatcher** คือระบบบันทึกรายรับ-รายจ่ายอัตโนมัติ (Automated Expense Tracker) ที่ทำงานร่วมกับ Mobile Banking ผ่าน Webhook โดยมีหัวใจหลักคือการตัดปัญหา "ขี้เกียจจด" ด้วยการใช้ Automation
+## How It Works
 
-## Features (Current & Planned)
+```
+KTB Notification → MacroDroid → Webhook API → Bronze (raw) → Silver (cleaned) → Grafana
+```
 
-- [x] **Webhook Listener:** รับข้อมูลแจ้งเตือนธนาคาร (เช่น Krungthai) ผ่าน API
-- [x] **Categorization:** จำแยก Category ก่อนส่ง API
-- [ ] **Data Persistence:** บันทึกลง PostgreSQL (Async SQLAlchemy)
-- [ ] **Dashboard:** แสดงผลกราฟการเงินผ่าน Grafana
-- [ ] **Telegram Notify:** แจ้งเตือนสรุปยอดรายวัน
+1. **MacroDroid** captures Krungthai bank notifications on Android
+2. User selects a category from a dialog (fetched from API)
+3. MacroDroid sends the data to the webhook
+4. API stores the raw payload in the **Bronze layer** (`bronze.raw_data`)
+5. ETL cleans the data and creates a **Silver layer** transaction (`public.transactions`)
+6. **Grafana** reads from Silver tables for dashboards
 
 ## Tech Stack
 
-- **Backend:** Python (FastAPI), Pydantic
-- **Database:** PostgreSQL, SQLAlchemy (Async), Alembic
-- **Integration:** MacroDroid (Android Automation)
-- **Monitoring:** Grafana (Visualization)
-- **Control & Notification** Telegram
----
-
-## Installation & Setup
-
-1. **Clone Repository**
-    ```bash
-    git clone https://github.com/Premkub49/MoneyWatcher.git
-    cd MoneyWatcher
-    ```
-
-2.  **Setup Environment**
-    สร้างไฟล์ `.env` โดยดูตัวอย่างจาก `.env.example`
-
-    ```env
-    DATABASE_URL=postgresql+asyncpg://[user]:[pass]@localhost:5432/money_watcher_db
-    ```
-
-3. **รัน Docker Compose**
-    เพื่อรัน grafana และ postgresql
-
-    ```bash
-    docker-compose up -d --build
-    ```
-
-4.  **Install Dependencies**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-5.  **Database Migration**
-
-    ```bash
-    alembic upgrade head
-    ```
-
-6.  **Run Server**
-
-    ```bash
-    uvicorn main:app --reload
-    ```
-
------
-
-## MacroDroid Configuration
-
-ระบบนี้ใช้ **MacroDroid** บน Android ในการดักจับ SMS/Notification จากธนาคาร แล้วยิง Webhook มาที่ Server
-
-### วิธีการตั้งค่า (Setup Guide)
-
-1.  **Trigger:** SMS Received / Notification Received (ในแอปกรุงไทยจะต้องเลือกเป็นไลน์และ Krungthai Contacts)
-2.  **Download Profile:**
-    > คุณสามารถโหลดไฟล์ Config ตัวอย่างได้ที่โฟลเดอร์: [`/integrations/macrodroid/Bank_Webhook.mdr`](https://www.google.com/search?q=./integrations/macrodroid/)
-
------
-
-## Grafana Dashboard
-
-โปรเจกต์นี้มาพร้อมกับ Docker Compose สำหรับรัน Grafana เพื่อดู Dashboard ทางการเงิน
-
-### การใช้งาน (Usage)
-
-1.  รัน Docker Compose (ถ้ายังไม่รันตอน Setup):
-    ```bash
-    docker-compose up -d --build
-    ```
-2.  เข้าไปที่ `http://localhost:3000` และ login
-3.  เชื่อมต่อ Data Source ไปที่ PostgreSQL ของโปรเจกต์
-4.  **Import Dashboard:**
-    > นำไฟล์ JSON จาก [`/integrations/grafana/dashboard.json`](https://www.google.com/search?q=./integrations/grafana/) ไป Import ในหน้า Dashboard
-
------
+- **Python 3.13** / FastAPI / Uvicorn
+- **SQLAlchemy** (async) + asyncpg
+- **Supabase** PostgreSQL (via pgbouncer)
+- **Alembic** for migrations
+- **MacroDroid** for Android notification capture
+- **Grafana** for visualization
+- **Zeabur** for deployment (auto-deploy on push)
 
 ## Project Structure
 
-```text
+```
 MoneyWatcher/
+├── main.py                          # FastAPI entry point
+├── alembic.ini
+├── zbpack.json                      # Zeabur deploy config
+├── requirements.txt
 ├── app/
-│   ├── api/          # Route Handlers
-│   ├── models/       # Database Models
-│   ├── schemas/      # Pydantic Schemas
-│   ├── services/     # Business Logic
-│   └── database/     # DB Connection & Init data
-├── integrations/
-│   ├── grafana/      # Dashboard JSON files
-│   └── macrodroid/   # .mdr files for Android
-├── migrations/       # Alembic versions
-└── main.py
+│   ├── api/v1/
+│   │   ├── webhook.py               # POST /krungthai, POST /process-raw
+│   │   └── category.py              # GET / POST / DELETE categories
+│   ├── database/
+│   │   ├── core.py                  # Async engine & session
+│   │   └── init_data.py             # Load category cache on startup
+│   ├── models/
+│   │   ├── base.py                  # RawData, Account, Category, Transaction
+│   │   └── enums.py                 # CategoryType (INCOME, EXPENSE, OTHER)
+│   ├── repositories/
+│   │   ├── account.py
+│   │   ├── category.py
+│   │   ├── raw_data.py
+│   │   └── transaction.py
+│   ├── schemas/
+│   │   └── webhook.py               # Pydantic models
+│   └── services/
+│       ├── account.py
+│       ├── category.py
+│       ├── category_cache.py        # In-memory cache (O(1) lookup)
+│       ├── raw_data.py
+│       └── transaction.py           # ETL: raw → cleaned transaction
+└── migrations/
+    └── versions/                    # Alembic migrations + seed data
 ```
 
-## Contributing
+## Database Schema
 
-เนื่องจากโปรเจกต์ยังไม่เสร็จสมบูรณ์ (WIP) หากพบ Bug หรือต้องการเสนอแนะ Feature สามารถเปิด Issue ทิ้งไว้ได้เลยครับ
+### Bronze Layer (`bronze` schema)
 
------
+| Table | Columns |
+|-------|---------|
+| **raw_data** | id (UUID), source, raw_payload, is_processed, created_at |
 
-*Created by Premkub49*
+### Silver Layer (`public` schema)
 
-````
+| Table | Columns |
+|-------|---------|
+| **categories** | name, display_name (with emoji), type (INCOME/EXPENSE/OTHER) |
+| **accounts** | name, account_number, provider, balance, created_at |
+| **transactions** | account_id, category_id, amount, bank_timestamp, note, created_at |
+
+### Default Categories
+
+| Name | Display | Type |
+|------|---------|------|
+| food | 🍕 food | EXPENSE |
+| travel | 🚗 travel | EXPENSE |
+| shopping | 🛒 shopping | EXPENSE |
+| bill | 💡 bill | EXPENSE |
+| transfer_in | 📥 transfer_in | INCOME |
+| transfer_out | 📤 transfer_out | EXPENSE |
+| other | 📝 other | OTHER |
+
+## MacroDroid Setup
+
+### Macro 1 — Notification Capture
+
+- **Trigger**: Krungthai app notification
+- **Action**: Create a persistent notification with amount info
+
+### Macro 2 — Category Selection & Webhook
+
+- **Trigger**: Click the persistent notification
+- **Actions**:
+  1. Fetch categories from `GET /api/v1/category`
+  2. Show selection dialog (Food, Travel, Shopping, Bill, Transfer IN/OUT, Other)
+  3. Send choice + notification data to `POST /api/v1/webhook/krungthai`
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/webhook/krungthai` | Receive MacroDroid webhook |
+| `POST` | `/api/v1/webhook/process-raw` | Trigger ETL on raw data |
+| `GET` | `/api/v1/category` | List all categories (for MacroDroid selector) |
+| `POST` | `/api/v1/category` | Add a category |
+| `DELETE` | `/api/v1/category/{name}` | Remove a category |
+
+## Setup
+
+```bash
+pip install -r requirements.txt
+
+# create .env with DATABASE_URL
+export DATABASE_URL=postgresql+asyncpg://user:pass@host:port/dbname
+
+alembic upgrade head
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## Deploy (Zeabur)
+
+Auto-deploys on push to `main` via [Zeabur](https://zeabur.com).
+
+1. Connect GitHub repo to Zeabur
+2. Set `DATABASE_URL` in Zeabur dashboard
+3. Zeabur reads `zbpack.json` and handles the rest
+
+No Docker required.
