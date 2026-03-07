@@ -1,7 +1,0 @@
-{
-  "python": {
-    "version": "3.13",
-    "entry": "main.py"
-  },
-  "start_command": "python -m alembic upgrade head && _startup"
-}

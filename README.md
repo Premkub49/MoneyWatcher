@@ -25,7 +25,7 @@ KTB Notification → MacroDroid → Webhook API → Bronze (raw) → Silver (cle
 - **Alembic** for migrations
 - **MacroDroid** for Android notification capture
 - **Grafana** for visualization
-- **Zeabur** for deployment (auto-deploy on push)
+- **Render** for hosting (auto-deploy on push)
 
 ## Project Structure
 
@@ -33,8 +33,10 @@ KTB Notification → MacroDroid → Webhook API → Bronze (raw) → Silver (cle
 MoneyWatcher/
 ├── main.py                          # FastAPI entry point
 ├── alembic.ini
-├── zbpack.json                      # Zeabur deploy config
+├── render.yaml                      # Render deploy config
 ├── requirements.txt
+├── .github/workflows/
+│   └── keep-alive.yml               # Cron ping to prevent Render sleep
 ├── app/
 │   ├── api/v1/
 │   │   ├── webhook.py               # POST /krungthai, POST /process-raw
