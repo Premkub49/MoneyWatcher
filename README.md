@@ -35,8 +35,6 @@ MoneyWatcher/
 ├── alembic.ini
 ├── render.yaml                      # Render deploy config
 ├── requirements.txt
-├── .github/workflows/
-│   └── keep-alive.yml               # Cron ping to prevent Render sleep
 ├── app/
 │   ├── api/v1/
 │   │   ├── webhook.py               # POST /krungthai, POST /process-raw
