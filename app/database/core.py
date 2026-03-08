@@ -9,10 +9,10 @@ load_dotenv()
 
 Base = declarative_base()
 
-DATABASE_URL = str(os.environ.get("DATABASE_URL", ""))
-async_engine = create_async_engine(DATABASE_URL, echo=False,connect_args={
-        "statement_cache_size": 0
-    })
+DATABASE_URL = str(os.getenv("DATABASE_URL", ""))
+async_engine = create_async_engine(DATABASE_URL, echo=False, connect_args={
+    "statement_cache_size": 0
+})
 
 AsyncSessionLocal = async_sessionmaker(async_engine, expire_on_commit=False)
 

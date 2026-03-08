@@ -13,14 +13,17 @@ router = APIRouter()
 @router.post("/krungthai")
 async def krungthai_handler(payload: WebhookPayload, db=Depends(get_db_session)):
     """Receive Macrodroid webhook, save to Bronze, then process to Transaction (Silver)."""
-    service = TransactionService()
+    # service = TransactionService()
+    raw_service = RawDataService()
     try:
-        result = await service.process_webhook(
-            db, source="Krungthai", payload=payload, category_name=payload.category
-        )
-        if result is None:
-            return {"status": "skipped", "msg": "amount is 0, not added"}
-        return {"status": "success"}
+        # result = await service.process_webhook(
+        #     db, source="Krungthai", payload=payload, category_name=payload.category
+        # )
+        # if result is None:
+        #     return {"status": "skipped", "msg": "amount is 0, not added"}
+        # return {"status": "success"}
+        await raw_service.save_raw(db, source="Krungthai", payload=payload)
+        return {"status": "saved"}
     except Exception as e:
         return {"status": "error", "msg": str(e)}
 

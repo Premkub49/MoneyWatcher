@@ -1,8 +1,8 @@
-"""init tables
+"""init_tables
 
-Revision ID: 657b581dc3a3
+Revision ID: 5e4f6bcff2a1
 Revises: 
-Create Date: 2026-03-07 19:50:21.449205
+Create Date: 2026-03-08 10:15:19.445172
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '657b581dc3a3'
+revision: str = '5e4f6bcff2a1'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -49,6 +49,19 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_categories_id'), 'categories', ['id'], unique=False)
+
+    # -- Seed default categories --
+    op.execute("""
+        INSERT INTO categories (name, display_name, type) VALUES
+            ('Food',         '🍔 Food',         'EXPENSE'),
+            ('Travel',       '🚗 Travel',       'EXPENSE'),
+            ('Shopping',     '🛒 Shopping',     'EXPENSE'),
+            ('Bill',         '📄 Bill',         'EXPENSE'),
+            ('Transfer IN',  '📥 Transfer IN',  'INCOME'),
+            ('Transfer OUT', '📤 Transfer OUT', 'EXPENSE'),
+            ('Other',        '📦 Other',        'OTHER')
+    """)
+
     op.create_table('transactions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
