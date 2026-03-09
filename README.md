@@ -111,9 +111,9 @@ MoneyWatcher/
 |--------|------|-------------|
 | `POST` | `/api/v1/webhook/krungthai` | Receive MacroDroid webhook |
 | `POST` | `/api/v1/webhook/process-raw` | Trigger ETL on raw data |
-| `GET` | `/api/v1/category` | List all categories (for MacroDroid selector) |
-| `POST` | `/api/v1/category` | Add a category |
-| `DELETE` | `/api/v1/category/{name}` | Remove a category |
+| `GET` | `/api/v1/categories` | List all categories (for MacroDroid selector) |
+| `POST` | `/api/v1/categories` | Add a category |
+| `DELETE` | `/api/v1/categories/{name}` | Remove a category |
 
 ## Setup
 

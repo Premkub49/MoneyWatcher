@@ -25,6 +25,6 @@ class RawDataService:
         """Get all unprocessed raw data rows."""
         return await self.repo.get_unprocessed(db)
 
-    async def mark_processed(self, db: AsyncSession, raw_data_id):
-        """Mark a raw data row as processed."""
-        return await self.repo.mark_processed(db, raw_data_id)
+    async def mark_done(self, db: AsyncSession, raw_data_id, status: str):
+        """Mark a raw data row as processed with status (success/failed)."""
+        return await self.repo.mark_done(db, raw_data_id, status)

@@ -18,12 +18,19 @@ class RawDataRepo:
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
-    async def mark_processed(self, db: AsyncSession, raw_data_id) -> RawData | None:
-        """Set is_processed = True for the given raw data id."""
+    async def get_by_id(self, db: AsyncSession, raw_data_id) -> RawData | None:
+        """Fetch a single raw data row by id."""
+        stmt = select(RawData).where(RawData.id == raw_data_id)
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def mark_done(self, db: AsyncSession, raw_data_id, status: str) -> RawData | None:
+        """Set is_processed = True and process_status for the given raw data id."""
         stmt = select(RawData).where(RawData.id == raw_data_id)
         result = await db.execute(stmt)
         raw = result.scalar_one_or_none()
         if raw:
             raw.is_processed = True
+            raw.process_status = status
             await db.commit()
         return raw

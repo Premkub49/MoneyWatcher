@@ -34,6 +34,7 @@ class RawData(Base):
     raw_payload = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_processed = Column(Boolean, default=False)          # processed flag
+    process_status = Column(String(20), nullable=True)     # success / failed / null
 
 
 # ── Silver Layer (schema: public) ────────────────────────────

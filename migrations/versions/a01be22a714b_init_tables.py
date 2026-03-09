@@ -1,8 +1,8 @@
 """init_tables
 
-Revision ID: 5e4f6bcff2a1
+Revision ID: a01be22a714b
 Revises: 
-Create Date: 2026-03-08 10:15:19.445172
+Create Date: 2026-03-08 14:23:52.435491
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5e4f6bcff2a1'
+revision: str = 'a01be22a714b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -38,6 +38,7 @@ def upgrade() -> None:
     sa.Column('raw_payload', sa.Text(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('is_processed', sa.Boolean(), nullable=True),
+    sa.Column('process_status', sa.String(length=20), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     schema='bronze'
     )
@@ -50,7 +51,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_categories_id'), 'categories', ['id'], unique=False)
 
-    # -- Seed default categories --
+    # Seed default categories
     op.execute("""
         INSERT INTO categories (name, display_name, type) VALUES
             ('Food',         '🍔 Food',         'EXPENSE'),
@@ -85,6 +86,7 @@ def downgrade() -> None:
     op.drop_table('transactions')
     op.drop_index(op.f('ix_categories_id'), table_name='categories')
     op.drop_table('categories')
+    op.execute("DROP TYPE IF EXISTS categorytype")
     op.drop_table('raw_data', schema='bronze')
     op.drop_index(op.f('ix_accounts_id'), table_name='accounts')
     op.drop_table('accounts')

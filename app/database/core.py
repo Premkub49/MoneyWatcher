@@ -9,7 +9,7 @@ load_dotenv()
 
 Base = declarative_base()
 
-DATABASE_URL = str(os.getenv("DATABASE_URL", ""))
+DATABASE_URL = str(os.getenv("DATABASE_URI", ""))
 async_engine = create_async_engine(DATABASE_URL, echo=False, connect_args={
     "statement_cache_size": 0
 })

@@ -20,9 +20,9 @@ class TransactionService:
 
     async def process_raw_data(self, db: AsyncSession, raw_data_id, category_name: str):
         """ETL: Bronze -> Silver. Parse raw notification, create account if needed, create transaction. Returns None if amount is 0."""
-        raw = await self.raw_data_service.repo.mark_processed(db, raw_data_id)
+        raw = await self.raw_data_service.repo.get_by_id(db, raw_data_id)
         if raw is None:
-            raise ValueError(f"Raw data {raw_data_id} not found or already processed")
+            raise ValueError(f"Raw data {raw_data_id} not found")
 
         payload = json.loads(raw.raw_payload)
         text = payload.get("notification", "")
