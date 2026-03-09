@@ -68,7 +68,7 @@ MoneyWatcher/
 
 | Table | Columns |
 |-------|---------|
-| **raw_data** | id (UUID), source, raw_payload, is_processed, created_at |
+| **raw_data** | id (UUID), source, raw_payload, is_processed, created_at, process_status |
 
 ### Silver Layer (`public` schema)
 
