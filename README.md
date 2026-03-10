@@ -33,7 +33,6 @@ KTB Notification → MacroDroid → Webhook API → Bronze (raw) → Silver (cle
 MoneyWatcher/
 ├── main.py                          # FastAPI entry point
 ├── alembic.ini
-├── render.yaml                      # Render deploy config
 ├── requirements.txt
 ├── app/
 │   ├── api/v1/
@@ -74,9 +73,9 @@ MoneyWatcher/
 
 | Table | Columns |
 |-------|---------|
-| **categories** | name, display_name (with emoji), type (INCOME/EXPENSE/OTHER) |
-| **accounts** | name, account_number, provider, balance, created_at |
-| **transactions** | account_id, category_id, amount, bank_timestamp, note, created_at |
+| **categories** | id, name, display_name (with emoji), type (INCOME/EXPENSE/OTHER) |
+| **accounts** | id, name, account_number, provider, balance, created_at |
+| **transactions** | id, account_id, category_id, amount, bank_timestamp, note, created_at |
 
 ### Default Categories
 
@@ -101,7 +100,7 @@ MoneyWatcher/
 
 - **Trigger**: Click the persistent notification
 - **Actions**:
-  1. Fetch categories from `GET /api/v1/category`
+  1. Fetch categories from `GET /api/v1/categories`
   2. Show selection dialog (Food, Travel, Shopping, Bill, Transfer IN/OUT, Other)
   3. Send choice + notification data to `POST /api/v1/webhook/krungthai`
 
@@ -120,8 +119,10 @@ MoneyWatcher/
 ```bash
 pip install -r requirements.txt
 
-# create .env with DATABASE_URL
-export DATABASE_URL=postgresql+asyncpg://user:pass@host:port/dbname
+# create .env with DATABASE_URI
+export DATABASE_URI=postgresql+asyncpg://user:pass@host:port/dbname
+# if want to migration use your direct uri
+export DATABASE_URI_DIRECT=postgresql+asyncpg://user:pass@host:port/dbname
 
 alembic upgrade head
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
