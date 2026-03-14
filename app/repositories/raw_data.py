@@ -14,7 +14,7 @@ class RawDataRepo:
 
     async def get_unprocessed(self, db: AsyncSession) -> list[RawData]:
         """Fetch all unprocessed raw data, ordered by created_at."""
-        stmt = select(RawData).where(RawData.is_processed == False).order_by(RawData.created_at)
+        stmt = select(RawData).where(RawData.is_processed == False).order_by(RawData.created_at).with_for_update()
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
